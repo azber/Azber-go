@@ -1,9 +1,9 @@
 package main
 
 import (
-	"net"
 	"Azber-go/azber"
 	"golang.org/x/net/proxy"
+	"net"
 )
 
 func main() {

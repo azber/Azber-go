@@ -1,9 +1,10 @@
 package azber
+
 import (
-	"net"
-	"io"
-	"strconv"
 	"golang.org/x/net/proxy"
+	"io"
+	"net"
+	"strconv"
 )
 
 const (
@@ -124,6 +125,5 @@ func serveSocks5Client(conn net.Conn, forward proxy.Dialer) {
 		defer dest.Close()
 		io.Copy(conn, dest)
 	}()
-
 	io.Copy(dest, conn)
 }
