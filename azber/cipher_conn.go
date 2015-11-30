@@ -32,23 +32,21 @@ func NewCipherConn(conn net.Conn, cryptMethod string, password []byte) (*CipherC
 	switch strings.ToLower(cryptMethod) {
 	default:
 		rwc = conn
-	case "rc4":
-		rwc, err = NewRC4Cipher(conn, password)
 	case "des":
 		rwc, err = NewDESCFBCipher(conn, password)
 	case "aes-128-cfb":
-		rwc, err = NewAESCFGCipher(conn, password, 16)
+		rwc, err = NewAESCFBCipher(conn, password, 16)
 	case "aes-192-cfb":
-		rwc, err = NewAESCFGCipher(conn, password, 24)
+		rwc, err = NewAESCFBCipher(conn, password, 24)
 	case "aes-256-cfb":
-		rwc, err = NewAESCFGCipher(conn, password, 32)
+		rwc, err = NewAESCFBCipher(conn, password, 32)
 	}
 	if err != nil {
 		return nil, err
 	}
 
 	return &CipherConn{
-		conn: conn,
+		Conn: conn,
 		rwc:  rwc,
 	}, err
 }
@@ -56,5 +54,5 @@ func NewCipherConn(conn net.Conn, cryptMethod string, password []byte) (*CipherC
 func NewCipherConnDecorator(cryptoMethod, password string) ConnDecorator {
 	return func(conn net.Conn) (net.Conn, error) {
 		return NewCipherConn(conn, cryptoMethod, []byte(password))
-	}()
+	}
 }

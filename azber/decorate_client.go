@@ -14,20 +14,20 @@ func NewDecorateClient(forward proxy.Dialer, ds ...ConnDecorator) *DecorateClien
 	decorate := &DecorateClient{
 		forward: forward,
 	}
-	decorate.decorators = append(decorate.decorators, ds)
+	decorate.decorators = append(decorate.decorators, ds...)
 	return decorate
 }
 
-func (d *DecorateClient) Dial(network, addr string) (net.Conn, error) {
-	conn, err := d.forward.Dial(network, addr)
+func (d *DecorateClient) Dial(network, address string) (net.Conn, error) {
+	conn, err := d.forward.Dial(network, address)
 	if err != nil {
 		ErrLog.Println("DecorateClient forward.Dial failed, err:", err, address)
 		return nil, err
 	}
-	dconn, err := DecorateConn(conn, d.decorators...)
+	dConn, err := DecorateConn(conn, d.decorators...)
 	if err != nil {
 		conn.Close()
 		return nil, err
 	}
-	return dconn, nil
+	return dConn, nil
 }

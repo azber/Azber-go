@@ -4,7 +4,7 @@ import "net"
 
 type ConnDecorator func(conn net.Conn) (net.Conn, error)
 
-func DecorateConn(conn net.Conn, ds ...ConnDecorator) {
+func DecorateConn(conn net.Conn, ds ...ConnDecorator) (net.Conn, error) {
 	decorated := conn
 	var err error
 	for _, decorate := range ds {

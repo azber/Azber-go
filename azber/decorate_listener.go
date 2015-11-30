@@ -5,21 +5,36 @@ import (
 )
 
 type DecorateListener struct {
-	listener net.Listener
+	listener   net.Listener
+	decorators []ConnDecorator
 }
 
-func (s *DecorateListener) Accept() (conn net.Conn, err error) {
-	sConn, sErr := s.listener.Accept()
-	if sErr {
-		return nil, sErr
+func NewDecorateListener(listener net.Listener, ds ...ConnDecorator) *DecorateListener {
+	l := &DecorateListener{
+		listener: listener,
 	}
-	return sConn, sErr
+	l.decorators = append(l.decorators, ds...)
+	return l
+}
+
+func (s *DecorateListener) Accept() (net.Conn, error) {
+	conn, err := s.listener.Accept()
+	if err != nil {
+		return nil, err
+	}
+
+	sConn, err := DecorateConn(conn, s.decorators...)
+	if err != nil {
+		conn.Close()
+		return nil, err
+	}
+	return conn, err
 }
 
 func (s *DecorateListener) Close() error {
 	return s.listener.Close()
 }
 
-func (s *DecorateListener) Addr() error {
+func (s *DecorateListener) Addr() net.Addr {
 	return s.listener.Addr()
 }
