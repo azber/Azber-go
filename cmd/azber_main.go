@@ -12,7 +12,6 @@ import (
 )
 
 func main() {
-
 	upstream := azber.Upstream{
 		Type:     "shadowsocks",
 		Crypto:   "aes-256-cfb",
@@ -20,18 +19,15 @@ func main() {
 		Address:  "133.130.99.18:34781",
 	}
 
-	pac := azber.PAC{
-		Address:  "127.0.0.1:50000",
-		Proxy:    "127.0.0.1:40000",
-		SOCKS5:   "127.0.0.1:8000",
-		Upstream: upstream,
+	proxy := azber.Proxy{
+		SOCKS5:          "8000",
+		Crypto:          "aes-256-cfb",
+		Password:        "ijdIM@j83!dj.Udi",
+		DNSCacheTimeout: 30,
+		Upstreams:       []azber.Upstream{upstream},
 	}
 
-	c := azber.Config{
-		PAC: pac,
-	}
-
-	router, _ := BuildUpstreamRouter(c)
+	router, _ := BuildUpstreamRouter(proxy)
 	runSOCKS5Server(router)
 
 	sigChan := make(chan os.Signal, 1)
