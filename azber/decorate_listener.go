@@ -28,7 +28,7 @@ func (s *DecorateListener) Accept() (net.Conn, error) {
 		conn.Close()
 		return nil, err
 	}
-	return conn, err
+	return sConn, err
 }
 
 func (s *DecorateListener) Close() error {

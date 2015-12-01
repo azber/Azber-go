@@ -39,5 +39,5 @@ func (u *UpstreamDialer) Dial(network, address string) (net.Conn, error) {
 		ErrLog.Println("UpstreamDialer router.Dial failed, err:", err, network, address)
 		return nil, err
 	}
-	return conn
+	return conn, nil
 }

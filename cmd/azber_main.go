@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"github.com/azber/Azber-go/azber"
-	"github.com/eahydra/socks"
+	"golang.org/x/net/proxy"
 	"log"
 	"net"
 	"os"
@@ -12,9 +12,26 @@ import (
 )
 
 func main() {
-	c := &azber.Proxy{}
 
-	router := BuildUpstreamRouter(c)
+	upstream := azber.Upstream{
+		Type:     "shadowsocks",
+		Crypto:   "aes-256-cfb",
+		Password: "ijdIM@j83!dj.Udi",
+		Address:  "133.130.99.18:34781",
+	}
+
+	pac := azber.PAC{
+		Address:  "127.0.0.1:50000",
+		Proxy:    "127.0.0.1:40000",
+		SOCKS5:   "127.0.0.1:8000",
+		Upstream: upstream,
+	}
+
+	c := azber.Config{
+		PAC: pac,
+	}
+
+	router, _ := BuildUpstreamRouter(c)
 	runSOCKS5Server(router)
 
 	sigChan := make(chan os.Signal, 1)
@@ -22,12 +39,12 @@ func main() {
 	<-sigChan
 }
 
-func BuildUpstreamRouter(conf azber.Proxy) socks.Dialer {
-	var allForward []socks.Dialer
+func BuildUpstreamRouter(conf azber.Proxy) (proxy.Dialer, error) {
+	var allForward []proxy.Dialer
 	for _, upstream := range conf.Upstreams {
-		var forward socks.Dialer
+		var forward proxy.Dialer
 		var err error
-		forward = azber.NewDecorateDirect(conf.DNSCacheTimeout)
+		forward, _ = azber.NewDecorateDirect(conf.DNSCacheTimeout)
 		forward, err = BuildUpstream(upstream, forward)
 		if err != nil {
 			azber.ErrLog.Println("failed to BuildUpstream, err:", err)
@@ -42,24 +59,24 @@ func BuildUpstreamRouter(conf azber.Proxy) socks.Dialer {
 	return azber.NewUpstreamDialer(allForward)
 }
 
-func BuildUpstream(upstream azber.Upstream, forward socks.Dialer) (socks.Dialer, error) {
+func BuildUpstream(upstream azber.Upstream, forward proxy.Dialer) (proxy.Dialer, error) {
 	cipherDecorator := azber.NewCipherConnDecorator(upstream.Crypto, upstream.Password)
 	forward = azber.NewDecorateClient(forward, cipherDecorator)
 
 	switch strings.ToLower(upstream.Type) {
 	case "socks5":
 		{
-			return socks.NewSocks5Client("tcp", upstream.Address, "", "", forward)
+			return azber.NewSocks5Client("tcp", upstream.Address, "", "", forward)
 		}
 	case "shadowsocks":
 		{
-			return socks.NewShadowSocksClient("tcp", upstream.Address, forward)
+			return azber.NewShadowsocksClient("tcp", upstream.Address, forward)
 		}
 	}
 	return nil, errors.New("unknown upstream type" + upstream.Type)
 }
 
-func runSOCKS5Server(forward socks.Dialer) {
+func runSOCKS5Server(forward proxy.Dialer) {
 	listener, err := net.Listen("tcp", ":7777")
 	if err != nil {
 		log.Println("net.Listen failed, err:", err, ":7777")

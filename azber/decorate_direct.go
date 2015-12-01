@@ -10,9 +10,9 @@ type DecorateDirect struct {
 }
 
 func NewDecorateDirect(dnsCacheTime int) (*DecorateDirect, error) {
-	var dnsCache DNSCache
+	var dnsCache *DNSCache
 	if dnsCacheTime != 0 {
-		dnsCache = NewDNSCache(dnsCacheTime)
+		dnsCache, _ = NewDNSCache(dnsCacheTime)
 	}
 	return &DecorateDirect{
 		dnsCache: dnsCache,
@@ -56,7 +56,7 @@ func (d *DecorateDirect) Dial(network, address string) (net.Conn, error) {
 			}
 		}
 	}
-	address = net.JoinHostPort(host, port)
+	address = net.JoinHostPort(dest, port)
 	destConn, err := proxy.Direct.Dial(network, address)
 	if err != nil {
 		return nil, err
